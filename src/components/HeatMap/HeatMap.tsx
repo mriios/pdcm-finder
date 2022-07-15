@@ -13,7 +13,7 @@ type Props = {
 const HeatMap = (props: Props) => {
   const data = props.data;
 
-  return <ResponsiveHeatMap data={data} />;
+  return <ResponsiveHeatMap data={data} valueFormat=" >-0.3~" />;
 };
 
 export default HeatMap;
