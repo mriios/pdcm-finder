@@ -32,7 +32,7 @@ const App = () => {
     <div className="App">
       <h1>PDCM Finder</h1>
       <h2>Heatmap</h2>
-      <div style={{ height: "90vh", width: "100%" }}>
+      <div style={{ height: "90vh", width: "100%", marginBottom: "200px" }}>
         {data && <HeatMap data={data} />}
       </div>
     </div>
