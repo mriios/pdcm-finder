@@ -1,9 +1,12 @@
+export type GeneData = {
+  x: string | number;
+  y: number | null;
+  diagnosis: string;
+}
+
 export type ParsedChartData = {
     id: string;
-    data: {
-      x: string | number;
-      y: number | null;
-    }[];
+    data: GeneData[];
 }[];
 
 export type ParsedData = {
