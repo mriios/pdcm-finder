@@ -9,8 +9,10 @@ import "./Filters.css";
 
 interface Props {
   onRangeChange: (value: string) => void;
-  onGeneChange: (value: string[]) => void;
-  onDiagnosisChange: (value: string[]) => void;
+  onSelectChange: (
+    selectedGenes: any[] | undefined,
+    selectedDiagnosis: any[] | undefined
+  ) => void;
   geneOptions: string[];
   diagnosisOptions: string[];
 }
@@ -22,16 +24,6 @@ const Filters = (props: Props): JSX.Element => {
   const [geneSelection, setGeneSelection] = useState<any[]>([]);
   const [diagnosisSelection, setDiagnosisSelection] = useState<any[]>([]);
   const [rangeSelection, setRangeSelection] = useState<string>("100");
-
-  const handleGeneChange = (selected: any[]) => {
-    props.onGeneChange(selected);
-    setGeneSelection(selected);
-  };
-
-  const handleDiagnosisChange = (selected: any[]) => {
-    props.onDiagnosisChange(selected);
-    setDiagnosisSelection(selected);
-  };
 
   const handleRangeChange = (value: string) => {
     props.onRangeChange(value);
@@ -50,7 +42,8 @@ const Filters = (props: Props): JSX.Element => {
                   id="basic-typeahead-single"
                   labelKey="name"
                   onChange={(selected) => {
-                    handleGeneChange(selected);
+                    props.onSelectChange(selected, diagnosisSelection);
+                    setGeneSelection(selected);
                   }}
                   options={geneOptions}
                   placeholder="Select a list of genes..."
@@ -66,7 +59,8 @@ const Filters = (props: Props): JSX.Element => {
                   id="basic-typeahead-single"
                   labelKey="name"
                   onChange={(selected) => {
-                    handleDiagnosisChange(selected);
+                    props.onSelectChange(geneSelection, selected);
+                    setDiagnosisSelection(selected);
                   }}
                   options={diagnosisOptions}
                   placeholder="Select a list of diagnosis..."

@@ -4,14 +4,15 @@ import { useEffect, useState } from "react";
 import Row from "react-bootstrap/Row";
 import Col from "react-bootstrap/Col";
 
+import { ParsedData, ParsedChartData, GeneData } from "./types/global";
 import Filters from "./components/HeatMap/Filters/Filters";
-import HeatMap from "./components/HeatMap/HeatMap";
-import { ParsedData, ParsedChartData } from "./types/global";
 import parseHeatmapData from "./util/parseHeatmapData";
+import HeatMap from "./components/HeatMap/HeatMap";
 
 const App = (): JSX.Element => {
   const chartHeight = 2300;
-  const [chartData, setChartData] = useState<ParsedChartData>();
+  const [filteredData, setFilteredData] = useState<ParsedChartData>([]);
+  const [chartData, setChartData] = useState<ParsedChartData>([]);
   const [geneOptions, setGeneOptions] = useState<string[] | undefined>([]);
   const [diagnosisOptions, setDiagnosisOptions] = useState<
     string[] | undefined
@@ -35,20 +36,42 @@ const App = (): JSX.Element => {
     getData().then((data) => assignParsedData(parseHeatmapData(data)));
   }, []);
 
-  const handleGeneChange = (selectedGenes: string[]) => {
-    let geneFilteredData = chartData?.filter((gene) =>
-      selectedGenes.includes(gene.id)
-    );
-    console.log({ geneFilteredData, selectedGenes });
-    setChartData(geneFilteredData);
+  const handleSelectChange = (
+    newSelectedGenes: string[],
+    newSelectedDiagnosis: string[]
+  ) => {
+    let diagnosisDataFilteredData,
+      diagnosisFilteredData = [],
+      newFilteredData;
+
+    const dataToFilter = chartData.map((obj) => {
+      return { ...obj };
+    });
+
+    if (newSelectedGenes.length) {
+      newFilteredData = dataToFilter.filter((gene) =>
+        newSelectedGenes?.includes(gene.id)
+      );
+    }
+
+    if (newSelectedDiagnosis.length) {
+      newFilteredData?.forEach((gene) => {
+        diagnosisDataFilteredData = gene.data.filter((geneData: GeneData) =>
+          newSelectedDiagnosis?.includes(geneData.diagnosis)
+        );
+
+        gene.data = diagnosisDataFilteredData;
+        diagnosisFilteredData.push(gene);
+      });
+    }
+
+    /*
+        @ts-ignore */
+    setFilteredData(newFilteredData);
   };
 
-  const handleDiagnosisChange = (e: string[]) => {
-    console.log(e);
-  };
-
-  const handleRangeChange = (e: string) => {
-    console.log(e);
+  const handleRangeChange = (value: string) => {
+    console.log(value);
   };
 
   return (
@@ -72,8 +95,9 @@ const App = (): JSX.Element => {
         /*
         @ts-ignore */
         diagnosisOptions={diagnosisOptions}
-        onGeneChange={handleGeneChange}
-        onDiagnosisChange={handleDiagnosisChange}
+        /*
+        @ts-ignore */
+        onSelectChange={handleSelectChange}
         onRangeChange={handleRangeChange}
       />
       <Container>
@@ -87,7 +111,10 @@ const App = (): JSX.Element => {
               }}
             >
               {chartData ? (
-                <HeatMap data={chartData} height={chartHeight} />
+                <HeatMap
+                  data={filteredData.length ? filteredData : chartData}
+                  height={chartHeight}
+                />
               ) : (
                 <p>Loading...</p>
               )}

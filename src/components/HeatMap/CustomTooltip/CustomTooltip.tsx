@@ -24,7 +24,7 @@ interface Props {
 
 const CustomTooltip = (props: Props): JSX.Element => {
   const cell = props.cell;
-  console.log(cell);
+
   return (
     <div
       style={{
