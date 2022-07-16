@@ -1,5 +1,7 @@
-const tsvToJson = (tsv) => {
-  const parsedData = [];
+const parseHeatmapData = (tsv) => {
+  const parsedData = [],
+    geneOptions = [],
+    diagnosisOptions = [];
 
   // tsv to json format
   const [headers, ...rows] = tsv
@@ -23,7 +25,8 @@ const tsvToJson = (tsv) => {
   const dividedData = jsonData.reduce((r, gene) => {
     (r[gene.gene_symbol] = r[gene.gene_symbol] || []).push({
       x: gene.model_id,
-      y: gene.z_score
+      y: gene.z_score,
+      diagnosis: gene.diagnosis
     });
 
     return r;
@@ -32,7 +35,8 @@ const tsvToJson = (tsv) => {
   for (const modelId in dividedData) {
     // structure data for chart
     const modelData = dividedData[modelId];
-    const averagedValues = Object.entries(
+
+    let averagedValues = Object.entries(
       modelData.reduce(
         (acc, { x, y }) => ({
           ...acc,
@@ -40,15 +44,36 @@ const tsvToJson = (tsv) => {
         }),
         {}
       )
-    ).map(([x, ys]) => ({
-      x,
-      y: ys.reduce((acc, cur) => acc + cur, 0) / ys.length
-    }));
+    )
+      .map(([x, ys]) => {
+        let currentDiagnosis = modelData.find((el) => el.x === x).diagnosis;
+
+        if (diagnosisOptions.indexOf(currentDiagnosis) === -1) {
+          diagnosisOptions.push(currentDiagnosis);
+        }
+
+        return {
+          x,
+          y: ys.reduce((acc, cur) => acc + cur, 0) / ys.length,
+          diagnosis: currentDiagnosis
+        };
+      })
+      .sort((a, b) => {
+        if (b.diagnosis > a.diagnosis) {
+          return -1;
+        }
+        if (a.diagnosis > b.diagnosis) {
+          return 1;
+        }
+        return 0;
+      });
 
     parsedData.push({
       id: modelId,
       data: averagedValues
     });
+
+    geneOptions.push(modelId);
   }
 
   // sort data by gene symbol
@@ -62,7 +87,7 @@ const tsvToJson = (tsv) => {
     return 0;
   });
 
-  return parsedData;
+  return { chartData: parsedData, geneOptions, diagnosisOptions };
 };
 
-export default tsvToJson;
+export default parseHeatmapData;

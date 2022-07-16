@@ -1,20 +1,27 @@
+import Container from "react-bootstrap/Container";
+import "bootstrap/dist/css/bootstrap.min.css";
 import { useEffect, useState } from "react";
+import Row from "react-bootstrap/Row";
+import Col from "react-bootstrap/Col";
 
+import Filters from "./components/HeatMap/Filters/Filters";
 import HeatMap from "./components/HeatMap/HeatMap";
-import tsvToJson from "./util/tsvToJson";
+import { ParsedData, ParsedChartData } from "./types/global";
+import parseHeatmapData from "./util/parseHeatmapData";
 
-import "./App.css";
+const App = (): JSX.Element => {
+  const chartHeight = 2300;
+  const [chartData, setChartData] = useState<ParsedChartData>();
+  const [geneOptions, setGeneOptions] = useState<string[] | undefined>([]);
+  const [diagnosisOptions, setDiagnosisOptions] = useState<
+    string[] | undefined
+  >([]);
 
-type data = {
-  id: string;
-  data: {
-    x: string | number;
-    y: number | null;
-  }[];
-}[];
-
-const App = () => {
-  const [data, setData] = useState<data>();
+  const assignParsedData = (data: ParsedData) => {
+    setChartData(data.chartData);
+    setGeneOptions(data.geneOptions);
+    setDiagnosisOptions(data.diagnosisOptions);
+  };
 
   useEffect(() => {
     const getData = async () => {
@@ -25,16 +32,69 @@ const App = () => {
 
       return data;
     };
-    getData().then((data) => setData(tsvToJson(data)));
+    getData().then((data) => assignParsedData(parseHeatmapData(data)));
   }, []);
+
+  const handleGeneChange = (selectedGenes: string[]) => {
+    let geneFilteredData = chartData?.filter((gene) =>
+      selectedGenes.includes(gene.id)
+    );
+    console.log({ geneFilteredData, selectedGenes });
+    setChartData(geneFilteredData);
+  };
+
+  const handleDiagnosisChange = (e: string[]) => {
+    console.log(e);
+  };
+
+  const handleRangeChange = (e: string) => {
+    console.log(e);
+  };
 
   return (
     <div className="App">
-      <h1>PDCM Finder</h1>
-      <h2>Heatmap</h2>
-      <div style={{ height: "90vh", width: "100%", marginBottom: "200px" }}>
-        {data && <HeatMap data={data} />}
-      </div>
+      <Container>
+        <Row>
+          <Col>
+            <h1 className="text-center">PDCM Finder</h1>
+          </Col>
+        </Row>
+        <Row>
+          <Col>
+            <h2 className="text-center">Expression data heatmap</h2>
+          </Col>
+        </Row>
+      </Container>
+      <Filters
+        /*
+        @ts-ignore */
+        geneOptions={geneOptions}
+        /*
+        @ts-ignore */
+        diagnosisOptions={diagnosisOptions}
+        onGeneChange={handleGeneChange}
+        onDiagnosisChange={handleDiagnosisChange}
+        onRangeChange={handleRangeChange}
+      />
+      <Container>
+        <Row>
+          <Col>
+            <div
+              style={{
+                height: `${chartHeight}px`,
+                minWidth: "1000px", // better readibility for mobile
+                marginBottom: "100px"
+              }}
+            >
+              {chartData ? (
+                <HeatMap data={chartData} height={chartHeight} />
+              ) : (
+                <p>Loading...</p>
+              )}
+            </div>
+          </Col>
+        </Row>
+      </Container>
     </div>
   );
 };

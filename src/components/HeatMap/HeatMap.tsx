@@ -1,15 +1,20 @@
 import { ResponsiveHeatMap } from "@nivo/heatmap";
 
-import { ParsedData } from "../../types/global";
-import CustomTooltip from "./CustomTooltip";
+import { ParsedChartData } from "../../types/global";
+import CustomTooltip from "./CustomTooltip/CustomTooltip";
 
 interface Props {
-  data: ParsedData;
+  data: ParsedChartData;
+  height: number;
 }
 
-const HeatMap = (props: Props) => {
+const HeatMap = (props: Props): JSX.Element => {
   const data = props.data,
-    allValues = [];
+    height = props.height,
+    legendLength = 300,
+    marginY = 60,
+    allValues = [],
+    tickFormat = " >-0.3~";
 
   for (const gene of data) {
     for (const modelId of gene.data) {
@@ -20,7 +25,9 @@ const HeatMap = (props: Props) => {
   return (
     <ResponsiveHeatMap<any, Record<string, unknown>>
       data={data}
-      valueFormat=" >-0.3~"
+      valueFormat={tickFormat}
+      margin={{ top: marginY, right: 150, bottom: marginY, left: 90 }}
+      tooltip={CustomTooltip}
       colors={{
         type: "sequential",
         scheme: "red_yellow_blue",
@@ -55,7 +62,24 @@ const HeatMap = (props: Props) => {
         legendPosition: "middle",
         legendOffset: -72
       }}
-      tooltip={CustomTooltip}
+      legends={[
+        {
+          anchor: "right",
+          translateX: 120,
+          translateY: -(height / 2 - legendLength / 2) + marginY,
+          length: legendLength,
+          thickness: 10,
+          direction: "column",
+          tickPosition: "after",
+          tickSize: 5,
+          tickSpacing: 5,
+          tickOverlap: false,
+          tickFormat: tickFormat,
+          title: "Z-score →",
+          titleAlign: "middle",
+          titleOffset: 5
+        }
+      ]}
     />
   );
 };
