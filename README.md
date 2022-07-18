@@ -21,3 +21,6 @@ After a diagnosis is picked, the data is filtered showing only data objects wher
 
 ### Range picker
 When the range is slid, the top percentage of values will be shown in the chart. This is based on an array of all values together and sorted. This arrays length is used in a math equation to get the value that is the base of the percentage of values we're looking for. 
+
+## Z-score
+Min and max values of filtered data were used to visualize an exact scale and colors. 
