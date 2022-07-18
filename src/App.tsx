@@ -8,9 +8,11 @@ import { ParsedData, ParsedChartData, GeneData } from "./types/global";
 import Filters from "./components/HeatMap/Filters/Filters";
 import parseHeatmapData from "./util/parseHeatmapData";
 import HeatMap from "./components/HeatMap/HeatMap";
+import "./App.css";
 
 const App = (): JSX.Element => {
   const chartHeight = 2300;
+
   const [chartData, setChartData] = useState<ParsedChartData>([]);
   const [mutableChartData, setMutableChartData] = useState<ParsedChartData>([]);
   const [geneOptions, setGeneOptions] = useState<string[] | undefined>([]);
@@ -135,7 +137,7 @@ const App = (): JSX.Element => {
   );
 
   return (
-    <div className="App">
+    <div className="App" style={{ marginTop: "50px" }}>
       <Container>
         <Row>
           <Col>
@@ -165,9 +167,9 @@ const App = (): JSX.Element => {
             <div
               style={{
                 height: `${chartHeight}px`,
-                minWidth: "1000px", // better readibility for mobile
-                marginBottom: "100px"
+                minWidth: "1000px" // better readibility for mobile
               }}
+              className="mb-5 HeatMap__container"
             >
               {chartData ? (
                 <HeatMap data={mutableChartData} height={chartHeight} />
