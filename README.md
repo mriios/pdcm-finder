@@ -37,6 +37,10 @@ Min and max values of filtered data were used to visualize an exact scale and co
 
 In the project directory, you can run:
 
+### `npm install`
+
+To install dependencies needed to run the project.
+
 ### `npm start`
 
 Runs the app in the development mode.\
