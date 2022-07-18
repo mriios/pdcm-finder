@@ -1,6 +1,6 @@
+import { useEffect, useState, useCallback } from "react";
 import Container from "react-bootstrap/Container";
 import "bootstrap/dist/css/bootstrap.min.css";
-import { useEffect, useState } from "react";
 import Row from "react-bootstrap/Row";
 import Col from "react-bootstrap/Col";
 
@@ -11,8 +11,8 @@ import HeatMap from "./components/HeatMap/HeatMap";
 
 const App = (): JSX.Element => {
   const chartHeight = 2300;
-  const [filteredData, setFilteredData] = useState<ParsedChartData>([]);
   const [chartData, setChartData] = useState<ParsedChartData>([]);
+  const [mutableChartData, setMutableChartData] = useState<ParsedChartData>([]);
   const [geneOptions, setGeneOptions] = useState<string[] | undefined>([]);
   const [diagnosisOptions, setDiagnosisOptions] = useState<
     string[] | undefined
@@ -20,6 +20,7 @@ const App = (): JSX.Element => {
 
   const assignParsedData = (data: ParsedData) => {
     setChartData(data.chartData);
+    setMutableChartData(data.chartData);
     setGeneOptions(data.geneOptions);
     setDiagnosisOptions(data.diagnosisOptions);
   };
@@ -36,39 +37,46 @@ const App = (): JSX.Element => {
     getData().then((data) => assignParsedData(parseHeatmapData(data)));
   }, []);
 
-  const handleSelectChange = (
-    newSelectedGenes: string[],
-    newSelectedDiagnosis: string[]
-  ) => {
-    let diagnosisDataFilteredData,
-      diagnosisFilteredData = [],
-      newFilteredData;
-
-    const dataToFilter = chartData.map((obj) => {
+  const createChartDataCopy = useCallback(() => {
+    return chartData.map((obj) => {
       return { ...obj };
     });
+  }, [chartData]);
 
-    if (newSelectedGenes.length) {
-      newFilteredData = dataToFilter.filter((gene) =>
-        newSelectedGenes?.includes(gene.id)
-      );
-    }
+  const handleSelectChange = useCallback(
+    (newSelectedGenes: string[], newSelectedDiagnosis: string[]) => {
+      let diagnosisDataFilteredData,
+        newFilteredData = createChartDataCopy();
 
-    if (newSelectedDiagnosis.length) {
-      newFilteredData?.forEach((gene) => {
-        diagnosisDataFilteredData = gene.data.filter((geneData: GeneData) =>
-          newSelectedDiagnosis?.includes(geneData.diagnosis)
+      if (newSelectedGenes.length) {
+        newFilteredData = newFilteredData.filter((gene) =>
+          newSelectedGenes?.includes(gene.id)
         );
+      }
 
-        gene.data = diagnosisDataFilteredData;
-        diagnosisFilteredData.push(gene);
-      });
-    }
+      if (newSelectedDiagnosis.length) {
+        let chartGeneData, chartDataCopy;
 
-    /*
-        @ts-ignore */
-    setFilteredData(newFilteredData);
-  };
+        newFilteredData?.forEach((gene) => {
+          chartDataCopy = createChartDataCopy();
+
+          chartGeneData = chartDataCopy.find(
+            (chartGene) => chartGene.id === gene.id
+          ) || { data: [] };
+
+          diagnosisDataFilteredData = chartGeneData.data.filter(
+            (geneData: GeneData) =>
+              newSelectedDiagnosis?.includes(geneData.diagnosis)
+          );
+
+          gene.data = diagnosisDataFilteredData;
+        });
+      }
+
+      setMutableChartData(newFilteredData);
+    },
+    [createChartDataCopy]
+  );
 
   const handleRangeChange = (value: string) => {
     console.log(value);
@@ -111,10 +119,7 @@ const App = (): JSX.Element => {
               }}
             >
               {chartData ? (
-                <HeatMap
-                  data={filteredData.length ? filteredData : chartData}
-                  height={chartHeight}
-                />
+                <HeatMap data={mutableChartData} height={chartHeight} />
               ) : (
                 <p>Loading...</p>
               )}
