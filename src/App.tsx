@@ -60,7 +60,10 @@ const App = (): JSX.Element => {
         );
       }
 
-      if (newSelectedDiagnosis.length) {
+      if (
+        newSelectedDiagnosis.length &&
+        (newRange === "100" || newRange === "0")
+      ) {
         let chartGeneData, chartDataCopy;
 
         newFilteredData?.forEach((gene) => {
@@ -80,14 +83,14 @@ const App = (): JSX.Element => {
       }
 
       if (newRange !== "100" && newRange !== "0") {
-        let chartDataCopy,
-          topValueAmount,
-          lowestAcceptedValue: string | undefined =
-            allValues && allValues[allValues?.length - 1],
-          valueFilteredData,
-          chartGeneData;
-
         if (allValues?.length) {
+          let chartDataCopy,
+            topValueAmount,
+            lowestAcceptedValue: string =
+              allValues[allValues?.length - 1] || "",
+            valueFilteredData,
+            chartGeneData;
+
           // out of total amount of values, get the amount of values that fit the range
           topValueAmount = Math.floor(
             allValues?.length * (parseInt(newRange) / 100)
@@ -104,14 +107,24 @@ const App = (): JSX.Element => {
             ) || { data: [] };
 
             valueFilteredData = chartGeneData.data.filter(
-              (geneData: GeneData) =>
-                geneData.y >= parseInt(lowestAcceptedValue)
+              (geneData: GeneData) => {
+                if (geneData.y) {
+                  return geneData.y >= parseInt(lowestAcceptedValue);
+                }
+                return null;
+              }
             );
+
+            if (newSelectedDiagnosis.length) {
+              valueFilteredData = valueFilteredData.filter(
+                (geneData: GeneData) =>
+                  newSelectedDiagnosis?.includes(geneData.diagnosis)
+              );
+            }
 
             gene.data = valueFilteredData;
           });
         }
-        console.log({ topValueAmount, lowestAcceptedValue });
       } else if (newRange === "0") {
         newFilteredData = [];
       }
