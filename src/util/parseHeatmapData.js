@@ -1,7 +1,8 @@
 const parseHeatmapData = (tsv) => {
   const parsedData = [],
     geneOptions = [],
-    diagnosisOptions = [];
+    diagnosisOptions = [],
+    allValues = [];
 
   // tsv to json format
   const [headers, ...rows] = tsv
@@ -47,14 +48,20 @@ const parseHeatmapData = (tsv) => {
     )
       .map(([x, ys]) => {
         let currentDiagnosis = modelData.find((el) => el.x === x).diagnosis;
+        let geneAveragedValue =
+          ys.reduce((acc, cur) => acc + cur, 0) / ys.length;
 
         if (diagnosisOptions.indexOf(currentDiagnosis) === -1) {
           diagnosisOptions.push(currentDiagnosis);
         }
 
+        if (allValues.indexOf(geneAveragedValue) === -1) {
+          allValues.push(geneAveragedValue);
+        }
+
         return {
           x,
-          y: ys.reduce((acc, cur) => acc + cur, 0) / ys.length,
+          y: geneAveragedValue,
           diagnosis: currentDiagnosis
         };
       })
@@ -87,7 +94,9 @@ const parseHeatmapData = (tsv) => {
     return 0;
   });
 
-  return { chartData: parsedData, geneOptions, diagnosisOptions };
+  allValues.sort((a, b) => b - a);
+
+  return { chartData: parsedData, geneOptions, diagnosisOptions, allValues };
 };
 
 export default parseHeatmapData;

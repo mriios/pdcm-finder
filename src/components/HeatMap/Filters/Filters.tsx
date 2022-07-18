@@ -9,9 +9,10 @@ import "./Filters.css";
 
 interface Props {
   onRangeChange: (value: string) => void;
-  onSelectChange: (
+  onFilterChange: (
     selectedGenes: any[] | undefined,
-    selectedDiagnosis: any[] | undefined
+    selectedDiagnosis: any[] | undefined,
+    range: string
   ) => void;
   geneOptions: string[];
   diagnosisOptions: string[];
@@ -25,11 +26,6 @@ const Filters = (props: Props): JSX.Element => {
   const [diagnosisSelection, setDiagnosisSelection] = useState<any[]>([]);
   const [rangeSelection, setRangeSelection] = useState<string>("100");
 
-  const handleRangeChange = (value: string) => {
-    props.onRangeChange(value);
-    setRangeSelection(value);
-  };
-
   return (
     <Container className="mb-4">
       <Row>
@@ -42,7 +38,11 @@ const Filters = (props: Props): JSX.Element => {
                   id="basic-typeahead-single"
                   labelKey="name"
                   onChange={(selected) => {
-                    props.onSelectChange(selected, diagnosisSelection);
+                    props.onFilterChange(
+                      selected,
+                      diagnosisSelection,
+                      rangeSelection
+                    );
                     setGeneSelection(selected);
                   }}
                   options={geneOptions}
@@ -59,7 +59,11 @@ const Filters = (props: Props): JSX.Element => {
                   id="basic-typeahead-single"
                   labelKey="name"
                   onChange={(selected) => {
-                    props.onSelectChange(geneSelection, selected);
+                    props.onFilterChange(
+                      geneSelection,
+                      selected,
+                      rangeSelection
+                    );
                     setDiagnosisSelection(selected);
                   }}
                   options={diagnosisOptions}
@@ -79,7 +83,16 @@ const Filters = (props: Props): JSX.Element => {
               </Form.Label>
               <Form.Range
                 step={10}
-                onChange={(e) => handleRangeChange(e.target.value)}
+                onChange={(e) => {
+                  let value = e.target.value;
+
+                  props.onFilterChange(
+                    geneSelection,
+                    diagnosisSelection,
+                    value
+                  );
+                  setRangeSelection(value);
+                }}
                 value={rangeSelection}
               />
             </Col>

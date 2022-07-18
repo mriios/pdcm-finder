@@ -17,12 +17,14 @@ const App = (): JSX.Element => {
   const [diagnosisOptions, setDiagnosisOptions] = useState<
     string[] | undefined
   >([]);
+  const [allValues, setAllValues] = useState<string[] | undefined>([]);
 
   const assignParsedData = (data: ParsedData) => {
     setChartData(data.chartData);
     setMutableChartData(data.chartData);
     setGeneOptions(data.geneOptions);
     setDiagnosisOptions(data.diagnosisOptions);
+    setAllValues(data.allValues);
   };
 
   useEffect(() => {
@@ -43,8 +45,12 @@ const App = (): JSX.Element => {
     });
   }, [chartData]);
 
-  const handleSelectChange = useCallback(
-    (newSelectedGenes: string[], newSelectedDiagnosis: string[]) => {
+  const handleFilterChange = useCallback(
+    (
+      newSelectedGenes: string[],
+      newSelectedDiagnosis: string[],
+      newRange: string
+    ) => {
       let diagnosisDataFilteredData,
         newFilteredData = createChartDataCopy();
 
@@ -73,14 +79,47 @@ const App = (): JSX.Element => {
         });
       }
 
+      if (newRange !== "100" && newRange !== "0") {
+        let chartDataCopy,
+          topValueAmount,
+          lowestAcceptedValue: string | undefined =
+            allValues && allValues[allValues?.length - 1],
+          valueFilteredData,
+          chartGeneData;
+
+        if (allValues?.length) {
+          // out of total amount of values, get the amount of values that fit the range
+          topValueAmount = Math.floor(
+            allValues?.length * (parseInt(newRange) / 100)
+          );
+
+          // mínimum value to be shown
+          lowestAcceptedValue = allValues[topValueAmount];
+
+          newFilteredData?.forEach((gene) => {
+            chartDataCopy = createChartDataCopy();
+
+            chartGeneData = chartDataCopy.find(
+              (chartGene) => chartGene.id === gene.id
+            ) || { data: [] };
+
+            valueFilteredData = chartGeneData.data.filter(
+              (geneData: GeneData) =>
+                geneData.y >= parseInt(lowestAcceptedValue)
+            );
+
+            gene.data = valueFilteredData;
+          });
+        }
+        console.log({ topValueAmount, lowestAcceptedValue });
+      } else if (newRange === "0") {
+        newFilteredData = [];
+      }
+
       setMutableChartData(newFilteredData);
     },
-    [createChartDataCopy]
+    [createChartDataCopy, allValues]
   );
-
-  const handleRangeChange = (value: string) => {
-    console.log(value);
-  };
 
   return (
     <div className="App">
@@ -105,8 +144,7 @@ const App = (): JSX.Element => {
         diagnosisOptions={diagnosisOptions}
         /*
         @ts-ignore */
-        onSelectChange={handleSelectChange}
-        onRangeChange={handleRangeChange}
+        onFilterChange={handleFilterChange}
       />
       <Container>
         <Row>

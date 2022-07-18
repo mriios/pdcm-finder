@@ -13,4 +13,5 @@ export type ParsedData = {
   chartData: ParsedChartData;
   geneOptions: string[] | undefined;
   diagnosisOptions: string[] | undefined;
+  allValues: string[] | undefined;
 }
